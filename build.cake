@@ -33,6 +33,8 @@ TaskSetup(setupContext =>
    if(TeamCity.IsRunningOnTeamCity)
    {
       TeamCity.WriteStartBuildBlock(setupContext.Task.Name);
+
+      TeamCity.WriteStartProgress(setupContext.Task.Name);
    }
 });
 
@@ -40,6 +42,8 @@ TaskTeardown(teardownContext =>
 {
    if(TeamCity.IsRunningOnTeamCity)
    {
+      TeamCity.WriteEndProgress(teardownContext.Task.Name);
+
       TeamCity.WriteEndBuildBlock(teardownContext.Task.Name);
    }
 });
