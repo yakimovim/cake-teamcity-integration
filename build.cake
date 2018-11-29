@@ -51,7 +51,8 @@ TaskTeardown(teardownContext =>
 Task("Default")
 .IsDependentOn("Clean")
 .IsDependentOn("Restore-NuGet-Packages")
-.IsDependentOn("Build");
+.IsDependentOn("Build")
+.IsDependentOn("Run-Tests");
 
 Task("Clean")
 .Does(() => {
@@ -73,8 +74,33 @@ Task("Build")
    MSBuild(solution, settings =>
       settings
          .SetConfiguration(configuration)
+         .SetMSBuildPlatform(MSBuildPlatform.x86)
          .SetVerbosity(Verbosity.Minimal)
          .UseToolVersion(MSBuildToolVersion.VS2017));
+});
+
+Task("Run-Tests")
+.IsDependentOn("Build")
+.Does(() => {
+   var testDllsPattern = string.Format("./**/bin/{0}/*.*Tests.dll", configuration);
+
+   var testDlls = GetFiles(testDllsPattern);
+
+   foreach (var testDll in testDlls)
+   {
+      Information("\t" + testDll);
+   }
+
+   var testResultsFile = System.IO.Path.Combine(artifactsFolder, "testResults.trx");
+
+   MSTest(testDlls, new MSTestSettings() {
+      ResultsFile = testResultsFile
+   });
+
+   if(TeamCity.IsRunningOnTeamCity)
+   {
+      TeamCity.ImportData("mstest", testResultsFile);
+   }
 });
 
 RunTarget(target);

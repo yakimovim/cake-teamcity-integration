@@ -5,7 +5,7 @@ namespace Application
 {
     public class Service
     {
-        public readonly Random _rnd = new Random((int)DateTime.UtcNow.Ticks);
+        private readonly Random _rnd = new Random((int)DateTime.UtcNow.Ticks);
 
         public int Add(int x, int y) => x + y;
 
