@@ -12,5 +12,13 @@ namespace Application.UnitTests
 
             Assert.AreEqual(3, service.Add(1, 2));
         }
+
+        [TestMethod, Owner(@"IvanY")]
+        public void Return3()
+        {
+            var service = new Service();
+
+            Assert.AreEqual(3, service.Return3());
+        }
     }
 }
