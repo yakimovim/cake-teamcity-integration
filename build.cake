@@ -1,3 +1,5 @@
+#tool "nuget:?package=JetBrains.dotCover.CommandLineTools"
+
 ///////////////////////////////////////////////////////////////////////////////
 // ARGUMENTS
 ///////////////////////////////////////////////////////////////////////////////
@@ -56,7 +58,7 @@ Task("Default")
 .IsDependentOn("Clean")
 .IsDependentOn("Restore-NuGet-Packages")
 .IsDependentOn("Build")
-.IsDependentOn("Run-Tests");
+.IsDependentOn("Analyse-Test-Coverage");
 
 Task("Clean")
 .Does(() => {
@@ -84,6 +86,7 @@ Task("Build")
 });
 
 Task("Run-Tests")
+.IsDependentOn("Clean")
 .IsDependentOn("Build")
 .Does(() => {
    var testDllsPattern = string.Format("./**/bin/{0}/*.*Tests.dll", configuration);
@@ -106,5 +109,51 @@ Task("Run-Tests")
       TeamCity.ImportData("mstest", testResultsFile);
    }
 });
+
+Task("Analyse-Test-Coverage")
+.IsDependentOn("Clean")
+.IsDependentOn("Build")
+.Does(() => {
+   var coverageResultFile = System.IO.Path.Combine(artifactsFolder, "coverageResult.dcvr");
+
+   var testDllsPattern = string.Format("./**/bin/{0}/*.*Tests.dll", configuration);
+
+   var testDlls = GetFiles(testDllsPattern);
+
+   foreach (var testDll in testDlls)
+   {
+      Information("\t" + testDll);
+   }
+
+   var testResultsFile = System.IO.Path.Combine(artifactsFolder, "testResults.trx");
+
+   DotCoverCover(tool => {
+         tool.MSTest(testDlls, new MSTestSettings() {
+            ResultsFile = testResultsFile
+         });
+      },
+      new FilePath(coverageResultFile),
+      new DotCoverCoverSettings()
+         .WithFilter("+:Application")
+         .WithFilter("-:Application.*Tests")
+      );
+
+   if(TeamCity.IsRunningOnTeamCity)
+   {
+      TeamCity.ImportData("mstest", testResultsFile);
+   }
+
+   DotCoverReport(coverageResultFile,
+      System.IO.Path.Combine(artifactsFolder, "coverageResult.html"),
+      new DotCoverReportSettings {
+         ReportType = DotCoverReportType.HTML
+      });
+
+   if(TeamCity.IsRunningOnTeamCity)
+   {
+      TeamCity.ImportDotCoverCoverage(coverageResultFile);
+   }
+});
+
 
 RunTarget(target);
