@@ -28,6 +28,22 @@ Teardown(ctx =>
    Information("Finished running tasks.");
 });
 
+TaskSetup(setupContext =>
+{
+   if(TeamCity.IsRunningOnTeamCity)
+   {
+      TeamCity.WriteStartBuildBlock(setupContext.Task.Name);
+   }
+});
+
+TaskTeardown(teardownContext =>
+{
+   if(TeamCity.IsRunningOnTeamCity)
+   {
+      TeamCity.WriteEndBuildBlock(teardownContext.Task.Name);
+   }
+});
+
 ///////////////////////////////////////////////////////////////////////////////
 // TASKS
 ///////////////////////////////////////////////////////////////////////////////
