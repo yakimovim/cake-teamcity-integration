@@ -6,6 +6,13 @@ var target = Argument("target", "Default");
 var configuration = Argument("configuration", "Release");
 
 ///////////////////////////////////////////////////////////////////////////////
+// PARAMETERS
+///////////////////////////////////////////////////////////////////////////////
+
+var artifactsFolder = "./artifacts";
+var solution = "./CakeTeamCityIntegration.sln";
+
+///////////////////////////////////////////////////////////////////////////////
 // SETUP / TEARDOWN
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -26,8 +33,32 @@ Teardown(ctx =>
 ///////////////////////////////////////////////////////////////////////////////
 
 Task("Default")
+.IsDependentOn("Clean")
+.IsDependentOn("Restore-NuGet-Packages")
+.IsDependentOn("Build");
+
+Task("Clean")
 .Does(() => {
-   Information("Hello Cake!");
+   if(!DirectoryExists(artifactsFolder))
+   {
+      CreateDirectory(artifactsFolder);
+   }
+
+   CleanDirectory(artifactsFolder);
+});
+
+Task("Restore-NuGet-Packages")
+.Does(() => {
+   NuGetRestore(solution);
+});
+
+Task("Build")
+.Does(() => {
+   MSBuild(solution, settings =>
+      settings
+         .SetConfiguration(configuration)
+         .SetVerbosity(Verbosity.Minimal)
+         .UseToolVersion(MSBuildToolVersion.VS2017));
 });
 
 RunTarget(target);
