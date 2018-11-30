@@ -13,6 +13,7 @@ var configuration = Argument("configuration", "Release");
 
 var artifactsFolder = "./artifacts";
 var solution = "./CakeTeamCityIntegration.sln";
+var nuspec = "./Application/Application.nuspec";
 
 ///////////////////////////////////////////////////////////////////////////////
 // SETUP / TEARDOWN
@@ -58,7 +59,9 @@ Task("Default")
 .IsDependentOn("Clean")
 .IsDependentOn("Restore-NuGet-Packages")
 .IsDependentOn("Build")
-.IsDependentOn("Analyse-Test-Coverage");
+.IsDependentOn("Analyse-Test-Coverage")
+.IsDependentOn("Create-NuGet-Package")
+.IsDependentOn("Publish-Artifacts-On-TeamCity");
 
 Task("Clean")
 .Does(() => {
@@ -155,5 +158,22 @@ Task("Analyse-Test-Coverage")
    }
 });
 
+Task("Create-NuGet-Package")
+.IsDependentOn("Build")
+.Does(() => {
+   var nuGetPackSettings = new NuGetPackSettings {
+      OutputDirectory = artifactsFolder
+   };
+
+   NuGetPack(nuspec, nuGetPackSettings);
+});
+
+Task("Publish-Artifacts-On-TeamCity")
+.IsDependentOn("Build")
+.IsDependentOn("Analyse-Test-Coverage")
+.WithCriteria(TeamCity.IsRunningOnTeamCity)
+.Does(() => {
+   TeamCity.PublishArtifacts(artifactsFolder);
+});
 
 RunTarget(target);

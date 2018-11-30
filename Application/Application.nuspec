@@ -1,0 +1,19 @@
+﻿<?xml version="1.0"?>
+<package>
+  <metadata>
+    <id>Application</id>
+    <title>Application Service</title>
+    <version>1.0.0</version>
+    <authors>Ivan Yakimov</authors>
+    <owners>Ivan Yakimov</owners>
+    <projectUrl>https://github.com/yakimovim/cake-teamcity-integration</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Application Service</description>
+  </metadata>
+  <files xmlns="">
+    <file src="*.ps1" target="" />
+    <file src=".\DeployScripts\*.*" target="DeployScripts" />
+    <file src=".\bin\Release\*.dll" target="bin" />
+    <file src=".\bin\Release\*.config" target="bin" />
+  </files>
+</package>
