@@ -12,6 +12,7 @@ var configuration = Argument("configuration", "Release");
 ///////////////////////////////////////////////////////////////////////////////
 
 var artifactsFolder = "./artifacts";
+var temporaryFolder = "./temp-build";
 var solution = "./CakeTeamCityIntegration.sln";
 var nuspec = "./Application/Application.nuspec";
 
@@ -71,6 +72,13 @@ Task("Clean")
    }
 
    CleanDirectory(artifactsFolder);
+
+   if(DirectoryExists(temporaryFolder))
+   {
+      DeleteDirectory(temporaryFolder, true);
+   }
+
+   CreateDirectory(temporaryFolder);
 });
 
 Task("Restore-NuGet-Packages")
@@ -101,7 +109,7 @@ Task("Run-Tests")
       Information("\t" + testDll);
    }
 
-   var testResultsFile = System.IO.Path.Combine(artifactsFolder, "testResults.trx");
+   var testResultsFile = System.IO.Path.Combine(temporaryFolder, "testResults.trx");
 
    MSTest(testDlls, new MSTestSettings() {
       ResultsFile = testResultsFile
@@ -117,7 +125,7 @@ Task("Analyse-Test-Coverage")
 .IsDependentOn("Clean")
 .IsDependentOn("Build")
 .Does(() => {
-   var coverageResultFile = System.IO.Path.Combine(artifactsFolder, "coverageResult.dcvr");
+   var coverageResultFile = System.IO.Path.Combine(temporaryFolder, "coverageResult.dcvr");
 
    var testDllsPattern = string.Format("./**/bin/{0}/*.*Tests.dll", configuration);
 
@@ -128,7 +136,7 @@ Task("Analyse-Test-Coverage")
       Information("\t" + testDll);
    }
 
-   var testResultsFile = System.IO.Path.Combine(artifactsFolder, "testResults.trx");
+   var testResultsFile = System.IO.Path.Combine(temporaryFolder, "testResults.trx");
 
    DotCoverCover(tool => {
          tool.MSTest(testDlls, new MSTestSettings() {
@@ -147,7 +155,7 @@ Task("Analyse-Test-Coverage")
    }
 
    DotCoverReport(coverageResultFile,
-      System.IO.Path.Combine(artifactsFolder, "coverageResult.html"),
+      System.IO.Path.Combine(temporaryFolder, "coverageResult.html"),
       new DotCoverReportSettings {
          ReportType = DotCoverReportType.HTML
       });
