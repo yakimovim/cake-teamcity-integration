@@ -56,10 +56,6 @@ TaskTeardown(teardownContext =>
 // TASKS
 ///////////////////////////////////////////////////////////////////////////////
 
-Task("A")
-//.Description("BBBB")
-.Does(() => {});
-
 Task("Default")
 .IsDependentOn("Clean")
 .IsDependentOn("Restore-NuGet-Packages")
@@ -130,7 +126,7 @@ Task("Run-Tests")
 });
 
 Task("Analyse-Test-Coverage")
-.Description("Analyse code coverage by tests");
+.Description("Analyse code coverage by tests")
 .IsDependentOn("Clean")
 .IsDependentOn("Build")
 .Does(() => {
