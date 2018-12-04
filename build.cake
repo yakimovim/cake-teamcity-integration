@@ -36,9 +36,9 @@ TaskSetup(setupContext =>
 {
    if(TeamCity.IsRunningOnTeamCity)
    {
-      TeamCity.WriteStartBuildBlock(setupContext.Task.Name);
+      // TeamCity.WriteStartBuildBlock(setupContext.Task.Description ?? setupContext.Task.Name);
 
-      TeamCity.WriteStartProgress(setupContext.Task.Name);
+      TeamCity.WriteStartProgress(setupContext.Task.Description ?? setupContext.Task.Name);
    }
 });
 
@@ -46,15 +46,19 @@ TaskTeardown(teardownContext =>
 {
    if(TeamCity.IsRunningOnTeamCity)
    {
-      TeamCity.WriteEndProgress(teardownContext.Task.Name);
+      TeamCity.WriteEndProgress(teardownContext.Task.Description ?? teardownContext.Task.Name);
 
-      TeamCity.WriteEndBuildBlock(teardownContext.Task.Name);
+      // TeamCity.WriteEndBuildBlock(teardownContext.Task.Description ?? teardownContext.Task.Name);
    }
 });
 
 ///////////////////////////////////////////////////////////////////////////////
 // TASKS
 ///////////////////////////////////////////////////////////////////////////////
+
+Task("A")
+//.Description("BBBB")
+.Does(() => {});
 
 Task("Default")
 .IsDependentOn("Clean")
@@ -65,6 +69,7 @@ Task("Default")
 .IsDependentOn("Publish-Artifacts-On-TeamCity");
 
 Task("Clean")
+.Description("Create and clean folders with results")
 .Does(() => {
    if(!DirectoryExists(artifactsFolder))
    {
@@ -82,11 +87,13 @@ Task("Clean")
 });
 
 Task("Restore-NuGet-Packages")
+.Description("Restore NuGet packages")
 .Does(() => {
    NuGetRestore(solution);
 });
 
 Task("Build")
+.Description("Build solution")
 .Does(() => {
    MSBuild(solution, settings =>
       settings
@@ -97,6 +104,7 @@ Task("Build")
 });
 
 Task("Run-Tests")
+.Description("Run tests")
 .IsDependentOn("Clean")
 .IsDependentOn("Build")
 .Does(() => {
@@ -122,6 +130,7 @@ Task("Run-Tests")
 });
 
 Task("Analyse-Test-Coverage")
+.Description("Analyse code coverage by tests");
 .IsDependentOn("Clean")
 .IsDependentOn("Build")
 .Does(() => {
@@ -167,6 +176,7 @@ Task("Analyse-Test-Coverage")
 });
 
 Task("Create-NuGet-Package")
+.Description("Create NuGet package")
 .IsDependentOn("Build")
 .Does(() => {
    var nuGetPackSettings = new NuGetPackSettings {
@@ -177,6 +187,7 @@ Task("Create-NuGet-Package")
 });
 
 Task("Publish-Artifacts-On-TeamCity")
+.Description("Publish artifacts on TeamCity")
 .IsDependentOn("Build")
 .IsDependentOn("Analyse-Test-Coverage")
 .WithCriteria(TeamCity.IsRunningOnTeamCity)
